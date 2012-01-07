@@ -1,0 +1,12 @@
+{
+  "name": "seatMate",
+  "subdomain": "seatMate",
+  "scripts": {
+    "start": "app.js"
+  },
+  "version": "0.0.0-1",
+  "dependencies": {
+    "express": "*",
+    "connect": "*"
+  }
+}
