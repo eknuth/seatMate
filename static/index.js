@@ -1,3 +1,5 @@
+var socket = io.connect(window.location.origin);
+
 var App = new Ext.Application({
     name: "seatMate"
 });
@@ -10,11 +12,11 @@ Ext.setup({
     onReady: function() {
         App.models.Comment = Ext.regModel('Comment', {
             fields: [{
-                name: 'from_user',
+                name: 'date',
                 type: 'string'
             },
             {
-                name: 'comment',
+                name: 'text',
                 type: 'string'
             },
             {
@@ -31,30 +33,35 @@ Ext.setup({
         
         Ext.regController('Comment', {
             submitComment: function (param) {
-                console.log(param.data.comment);
+                debugger;
+                socket.emit('submit-comment', {comment: param.data.comment});
            }
         });
-        var commentData = [{
-            "from_user": "hipster trash",
-            "comment": "My stop was closed :(",
-            "profile_image_url": "http://placekitten.com/48/48"
-        }, {
-            "from_user": "funky redhead",
-            "comment": "I think the bridge is up?",
-            "profile_image_url": "http://placekitten.com/48/48"
-        }, {
-            "from_user": "smokin' grannie",
-            "comment": "What a beautiful day!",
-            "profile_image_url": "http://placekitten.com/48/48"
-        }];
-        var comments = new Ext.Component({
+
+        var commentData = [];
+
+        Ext.each(rawComments, function(rawComment, index) {
+            var comment = JSON.parse(rawComment);
+            commentData.push({
+                "date": new Date(comment.ts).format('g:i a d/h/Y'),
+                "comment": comment.text,
+                "profile_image_url": "http://placekitten.com/48/48"
+            });
+        });
+        App.comments = new Ext.Component({
             title: 'Comments',
             cls: 'timeline',
             scroll: 'vertical',
-            tpl: ['<tpl for=".">', '<div class="tweet">', '<div class="avatar"><img src="{profile_image_url}" /></div>', '<div class="tweet-content">', '<h2>{from_user}</h2>', '<p>{comment}</p>', '</div>', '</div>', '</tpl>']
+            tpl: ['<tpl for=".">',
+                    '<div class="tweet">',
+                        '<div class="avatar"><img src="{profile_image_url}" /></div>',
+                        '<div class="tweet-content">',
+                        '<h2>{comment}</h2>',
+                        '<p>{date}</p>',
+                        '</div>', '</div>', '</tpl>']
         });
 
-        comments.update(commentData);
+        App.comments.update(commentData);
 
         App.form = new Ext.form.FormPanel({
             title: 'comment',
@@ -62,7 +69,7 @@ Ext.setup({
             url: '/postComment',
             standardSubmit: false,
             items: [
-            comments,
+            App.comments,
             {
                 xtype: 'fieldset',
                 title: 'leave a comment',
