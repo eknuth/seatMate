@@ -1,4 +1,0 @@
-
-exports.host = '';
-exports.port = '';
-exports.password = '';

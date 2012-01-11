@@ -3,10 +3,10 @@ var settings = require('./local_settings'),
 	app = express.createServer(),
   io = require('socket.io').listen(app),
   redis = require("redis"),
-  client = redis.createClient(settings.port, settings.host),
+  client = redis.createClient(process.env.REDISPORT, process.env.REDISHOST),
   jqtpl = require('jqtpl');
 
-client.auth(settings.password, redis.print);
+client.auth(process.env.REDISPASSWORD, redis.print);
 
 
 app.configure(function(){
