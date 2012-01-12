@@ -13,7 +13,8 @@ Ext.setup({
         App.models.Comment = Ext.regModel('Comment', {
             fields: [{
                 name: 'date',
-                type: 'string'
+                type: 'date',
+                format: 'g:i a d/h/Y'
             },
             {
                 name: 'text',
@@ -23,57 +24,67 @@ Ext.setup({
                 name: 'profile_image_url',
                 type: 'string'
             }],
-            proxy:
-            {
-                type: 'localstorage',
-                id: 'comments'
+            proxy: {
+               type: 'localstorage',
+                id  : 'comment'
             }
-            
         });
         
         Ext.regController('Comment', {
             submitComment: function (param) {
-                debugger;
+                App.store.add({
+                "date": new Date(), // .format('g:i a d/h/Y'),
+                "comment": param.data.comment,
+                "profile_image_url": "http://placekitten.com/48/48"
+                });
+                App.store.sort();
+                App.comments.refresh();
                 socket.emit('submit-comment', {comment: param.data.comment});
            }
         });
 
         var commentData = [];
-
         Ext.each(rawComments, function(rawComment, index) {
             var comment = JSON.parse(rawComment);
             commentData.push({
-                "date": new Date(comment.ts).format('g:i a d/h/Y'),
+                "date": new Date(comment.ts), //.format('g:i a d/h/Y'),
                 "comment": comment.text,
                 "profile_image_url": "http://placekitten.com/48/48"
             });
         });
-        App.comments = new Ext.Component({
+        App.store = new Ext.data.Store({
+            model: 'Comment',
+            data: commentData,
+            sorters: [{ property: 'date',  direction: 'DESC' }]
+        });
+
+        App.comments = new Ext.List({
             title: 'Comments',
             cls: 'timeline',
             scroll: 'vertical',
-            tpl: ['<tpl for=".">',
-                    '<div class="tweet">',
-                        '<div class="avatar"><img src="{profile_image_url}" /></div>',
-                        '<div class="tweet-content">',
-                        '<h2>{comment}</h2>',
-                        '<p>{date}</p>',
-                        '</div>', '</div>', '</tpl>']
+            flex: 3,
+            store: App.store,
+            itemTpl: Ext.XTemplate.from('comment-template')
+
         });
 
-        App.comments.update(commentData);
+        // App.comments.update();
 
         App.form = new Ext.form.FormPanel({
             title: 'comment',
             scroll: 'vertical',
-            url: '/postComment',
-            standardSubmit: false,
+            standardSubmit: true,
+            layout: {
+                type: "vbox",
+                align: "stretch"
+            },
             items: [
             App.comments,
             {
                 xtype: 'fieldset',
                 title: 'leave a comment',
                 instructions: 'comment will be seen by other riders of the 14',
+                flex: 1,
                 defaults: {
                     required: false,
                     labelAlign: 'left',
@@ -96,24 +107,24 @@ Ext.setup({
                     text: 'leave a comment',
                     ui: 'confirm',
                     handler: function() {
+
                         Ext.dispatch({
                             controller: 'Comment',
                             action: 'submitComment',
                             data: App.form.getValues()
                         });
-                                                
-                        // form.submit({
-                        //     waitMsg : {message:'Submitting', cls : 'demos-loading'}
-                        // });
+                        App.form.reset();
                     }
                 }]
             }]
         });
-        // form.show();
+        
+    
         new Ext.TabPanel({
             fullscreen: true,
             type: 'dark',
             sortable: true,
+            cardSwitchAnimation: {type: 'fade', duration: 200},
             items: [App.form,
             {
                 title: 'chat',

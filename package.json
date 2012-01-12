@@ -1,10 +1,10 @@
 {
   "name": "seatMate",
-  "subdomain": "seatMate",
+  "subdomain": "seatmate",
   "scripts": {
     "start": "app.js"
   },
-  "version": "0.0.0-2",
+  "version": "0.0.10",
   "dependencies": {
     "express": "*",
     "connect": "*",

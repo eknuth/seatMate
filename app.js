@@ -1,12 +1,13 @@
-var settings = require('./local_settings'),
-  express = require('express'),
+var express = require('express'),
 	app = express.createServer(),
   io = require('socket.io').listen(app),
   redis = require("redis"),
-  client = redis.createClient(process.env.REDISPORT, process.env.REDISHOST),
+  
   jqtpl = require('jqtpl');
 
-client.auth(process.env.REDISPASSWORD, redis.print);
+
+client = redis.createClient(process.env.redis_port, process.env.redis_host);
+client.auth(process.env.redis_password, redis.print);
 
 
 app.configure(function(){
@@ -38,7 +39,7 @@ app.configure('production', function(){
 
 app.get('/', function(req, res) {
   console.log('getting /');
-  client.lrange("bus:comment", 0, 2, function (err, data) {
+  client.lrange("bus:comment", 0, 14, function (err, data) {
     res.render('index.html', {'comments': JSON.stringify(data)});
   });
 
@@ -49,7 +50,7 @@ app.get('/', function(req, res) {
 io.sockets.on('connection', function (socket) {
   socket.on('submit-comment', function (data) {
     client.lpush("bus:comment", JSON.stringify(
-                {'ts': new Date(), 'text': data.comment}));
+                {'ts': new Date().getTime(), 'text': data.comment}));
   });
 });
 
