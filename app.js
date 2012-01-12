@@ -5,10 +5,9 @@ var express = require('express'),
   
   jqtpl = require('jqtpl');
 
-var settings = JSON.parse(require('fs').readFileSync('config.json').toString());
 
-client = redis.createClient(settings.redis_port, settings.redis_host);
-client.auth(settings.redis_password, redis.print);
+client = redis.createClient(process.env.redis_port, process.env.redis_host);
+client.auth(process.env.redis_password, redis.print);
 
 
 app.configure(function(){
