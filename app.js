@@ -2,12 +2,13 @@ var express = require('express'),
 	app = express.createServer(),
   io = require('socket.io').listen(app),
   redis = require("redis"),
-  client = redis.createClient(process.env.REDISPORT, process.env.REDISHOST),
+  
   jqtpl = require('jqtpl');
 
 var settings = JSON.parse(require('fs').readFileSync('config.json').toString());
 
-client.auth(process.env.REDISPASSWORD, redis.print);
+client = redis.createClient(settings.redis_port, settings.redis_host);
+client.auth(settings.redis_password, redis.print);
 
 
 app.configure(function(){
