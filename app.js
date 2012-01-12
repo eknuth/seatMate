@@ -1,10 +1,11 @@
-var settings = require('./local_settings'),
-  express = require('express'),
+var express = require('express'),
 	app = express.createServer(),
   io = require('socket.io').listen(app),
   redis = require("redis"),
   client = redis.createClient(process.env.REDISPORT, process.env.REDISHOST),
   jqtpl = require('jqtpl');
+
+var settings = JSON.parse(require('fs').readFileSync('config.json').toString());
 
 client.auth(process.env.REDISPASSWORD, redis.print);
 
@@ -49,7 +50,7 @@ app.get('/', function(req, res) {
 io.sockets.on('connection', function (socket) {
   socket.on('submit-comment', function (data) {
     client.lpush("bus:comment", JSON.stringify(
-                {'ts': new Date(), 'text': data.comment}));
+                {'ts': new Date().getTime(), 'text': data.comment}));
   });
 });
 

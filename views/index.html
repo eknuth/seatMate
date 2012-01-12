@@ -7,7 +7,7 @@
 	<link rel="stylesheet" href="css/android.css" type="text/css">
 	<link rel="stylesheet" href="css/seatmate.css" type="text/css">	
 	<script src="/socket.io/socket.io.js"></script>
-	<script type="text/javascript" src="js/sencha-touch.js"></script>
+	<script type="text/javascript" src="js/sencha-touch-debug.js"></script>
 	
 
 	<style>
@@ -22,16 +22,14 @@
 	</style>
 </head>
 <body>
-<textarea id="comments-template" class="x-hidden-display">
-	<tpl for=".">
-		<div class="tweet">
-			<div class="avatar"><img src="{profile_image_url}" /></div>
-			<div class="tweet-content">
-				<h2>{comment}</h2>
-				<p>{date}</p>
-			</div>
+<textarea id="comment-template" class="x-hidden-display">
+	<div class="tweet">
+		<div class="avatar"><img src="{profile_image_url}" /></div>
+		<div class="tweet-content">
+			<h2>{comment}</h2>
+			<p>{date}</p>
 		</div>
-	</tpl>
+	</div>
 </textarea>
 </body>
 </html>

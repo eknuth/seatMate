@@ -13,7 +13,8 @@ Ext.setup({
         App.models.Comment = Ext.regModel('Comment', {
             fields: [{
                 name: 'date',
-                type: 'string'
+                type: 'date',
+                format: 'g:i a d/h/Y'
             },
             {
                 name: 'text',
@@ -23,49 +24,55 @@ Ext.setup({
                 name: 'profile_image_url',
                 type: 'string'
             }],
-            proxy:
-            {
-                type: 'localstorage',
-                id: 'comments'
+            proxy: {
+               type: 'localstorage',
+                id  : 'comment'
             }
-            
         });
         
         Ext.regController('Comment', {
             submitComment: function (param) {
-                App.commentData.push({
-                "date": new Date().format('g:i a d/h/Y'),
+                App.store.add({
+                "date": new Date(), // .format('g:i a d/h/Y'),
                 "comment": param.data.comment,
                 "profile_image_url": "http://placekitten.com/48/48"
                 });
+                App.store.sort();
+                App.comments.refresh();
                 socket.emit('submit-comment', {comment: param.data.comment});
            }
         });
 
-        App.commentData = [];
-
+        var commentData = [];
         Ext.each(rawComments, function(rawComment, index) {
             var comment = JSON.parse(rawComment);
-            App.commentData.push({
-                "date": new Date(comment.ts).format('g:i a d/h/Y'),
+            commentData.push({
+                "date": new Date(comment.ts), //.format('g:i a d/h/Y'),
                 "comment": comment.text,
                 "profile_image_url": "http://placekitten.com/48/48"
             });
         });
-        App.comments = new Ext.Container({
+        App.store = new Ext.data.Store({
+            model: 'Comment',
+            data: commentData,
+            sorters: [{ property: 'date',  direction: 'DESC' }]
+        });
+
+        App.comments = new Ext.List({
             title: 'Comments',
             cls: 'timeline',
             scroll: 'vertical',
             flex: 3,
-            tpl: Ext.XTemplate.from('comments-template')
+            store: App.store,
+            itemTpl: Ext.XTemplate.from('comment-template')
+
         });
 
-        App.comments.update(App.commentData);
+        // App.comments.update();
 
         App.form = new Ext.form.FormPanel({
             title: 'comment',
             scroll: 'vertical',
-            url: '/postComment',
             standardSubmit: true,
             layout: {
                 type: "vbox",
@@ -100,20 +107,19 @@ Ext.setup({
                     text: 'leave a comment',
                     ui: 'confirm',
                     handler: function() {
+
                         Ext.dispatch({
                             controller: 'Comment',
                             action: 'submitComment',
                             data: App.form.getValues()
                         });
-                                                
-                        // form.submit({
-                        //     waitMsg : {message:'Submitting', cls : 'demos-loading'}
-                        // });
+                        App.form.reset();
                     }
                 }]
             }]
         });
-        // form.show();
+        
+    
         new Ext.TabPanel({
             fullscreen: true,
             type: 'dark',
