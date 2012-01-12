@@ -21,7 +21,19 @@
 	    }
 	</style>
 </head>
-<body></body>
+<body>
+<textarea id="comments-template" class="x-hidden-display">
+	<tpl for=".">
+		<div class="tweet">
+			<div class="avatar"><img src="{profile_image_url}" /></div>
+			<div class="tweet-content">
+				<h2>{comment}</h2>
+				<p>{date}</p>
+			</div>
+		</div>
+	</tpl>
+</textarea>
+</body>
 </html>
 <script type="text/javascript">
 var rawComments = {{html comments}};

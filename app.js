@@ -38,7 +38,7 @@ app.configure('production', function(){
 
 app.get('/', function(req, res) {
   console.log('getting /');
-  client.lrange("bus:comment", 0, 2, function (err, data) {
+  client.lrange("bus:comment", 0, 14, function (err, data) {
     res.render('index.html', {'comments': JSON.stringify(data)});
   });
 

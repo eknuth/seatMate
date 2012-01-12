@@ -33,47 +33,51 @@ Ext.setup({
         
         Ext.regController('Comment', {
             submitComment: function (param) {
-                debugger;
+                App.commentData.push({
+                "date": new Date().format('g:i a d/h/Y'),
+                "comment": param.data.comment,
+                "profile_image_url": "http://placekitten.com/48/48"
+                });
                 socket.emit('submit-comment', {comment: param.data.comment});
            }
         });
 
-        var commentData = [];
+        App.commentData = [];
 
         Ext.each(rawComments, function(rawComment, index) {
             var comment = JSON.parse(rawComment);
-            commentData.push({
+            App.commentData.push({
                 "date": new Date(comment.ts).format('g:i a d/h/Y'),
                 "comment": comment.text,
                 "profile_image_url": "http://placekitten.com/48/48"
             });
         });
-        App.comments = new Ext.Component({
+        App.comments = new Ext.Container({
             title: 'Comments',
             cls: 'timeline',
             scroll: 'vertical',
-            tpl: ['<tpl for=".">',
-                    '<div class="tweet">',
-                        '<div class="avatar"><img src="{profile_image_url}" /></div>',
-                        '<div class="tweet-content">',
-                        '<h2>{comment}</h2>',
-                        '<p>{date}</p>',
-                        '</div>', '</div>', '</tpl>']
+            flex: 3,
+            tpl: Ext.XTemplate.from('comments-template')
         });
 
-        App.comments.update(commentData);
+        App.comments.update(App.commentData);
 
         App.form = new Ext.form.FormPanel({
             title: 'comment',
             scroll: 'vertical',
             url: '/postComment',
-            standardSubmit: false,
+            standardSubmit: true,
+            layout: {
+                type: "vbox",
+                align: "stretch"
+            },
             items: [
             App.comments,
             {
                 xtype: 'fieldset',
                 title: 'leave a comment',
                 instructions: 'comment will be seen by other riders of the 14',
+                flex: 1,
                 defaults: {
                     required: false,
                     labelAlign: 'left',
@@ -114,6 +118,7 @@ Ext.setup({
             fullscreen: true,
             type: 'dark',
             sortable: true,
+            cardSwitchAnimation: {type: 'fade', duration: 200},
             items: [App.form,
             {
                 title: 'chat',
