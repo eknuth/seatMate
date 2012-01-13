@@ -6,8 +6,6 @@ var express = require('express'),
   jqtpl = require('jqtpl');
 
 
-client = redis.createClient(process.env.redis_port, process.env.redis_host);
-client.auth(process.env.redis_password, redis.print);
 
 
 app.configure(function(){
@@ -20,12 +18,15 @@ app.configure(function(){
         layout: false
     });
     app.register(".html", jqtpl.express);
+    
+
 });
 
 app.configure('development', function(){
     app.use(express.static(__dirname + '/static'));
     app.use(express.logger());
     app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+    client = redis.createClient();
 });
 
 app.configure('production', function(){
@@ -33,6 +34,8 @@ app.configure('production', function(){
   app.use(express.static(__dirname + '/static', { maxAge: oneYear }));
   app.use(express.errorHandler());
   app.use(express.logger());
+  client = redis.createClient(process.env.redis_port, process.env.redis_host);
+  client.auth(process.env.redis_password, redis.print);
 
 });
 
