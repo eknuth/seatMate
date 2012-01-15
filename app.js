@@ -2,8 +2,9 @@ var express = require('express'),
 	app = express.createServer(),
   io = require('socket.io').listen(app),
   redis = require("redis"),
-  
-  jqtpl = require('jqtpl');
+  jqtpl = require('jqtpl'),
+  trimet = require('./lib/trimet.js');
+
 
 
 
@@ -51,6 +52,11 @@ app.get('/', function(req, res) {
 
 
 io.sockets.on('connection', function (socket) {
+  socket.on('get-routes', function (lat, lon, cb) {
+    trimet.getRouteByPoint(lat, lon, function(err, data) {
+      cb(data);
+    });
+  });
   socket.on('submit-comment', function (data) {
     client.lpush("bus:comment", JSON.stringify(
                 {'ts': new Date().getTime(), 'text': data.comment}));

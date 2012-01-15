@@ -61,29 +61,27 @@ Ext.setup({
            }
         });
 
-        var routeData = [];
-        Ext.each(rawRoutes, function(rawRoute, index) {
-            var route = rawRoute;
-            routeData.push({
-                "route": rawRoute.route,
-                "description": rawRoute.description
-            });
-        });
+
         App.routeStore = new Ext.data.Store({
             model: 'Route',
-            data: routeData,
+            data: [],
             sorters: [{ property: 'route',  direction: 'DESC' }]
         });
 
-
+        // load the routes
+        socket.emit('get-routes', 3, 3, function (routes) {
+            Ext.each(routes, function (route, index) {
+                App.routeStore.add(route);
+            });
+            App.routeList.refresh();
+        });
 
         var commentData = [];
         Ext.each(rawComments, function(rawComment, index) {
             var comment = JSON.parse(rawComment);
             commentData.push({
                 "date": new Date(comment.ts), //.format('g:i a d/h/Y'),
-                "comment": comment.text,
-                "profile_image_url": "http://placekitten.com/48/48"
+                "comment": comment.text
             });
         });
         App.commentStore = new Ext.data.Store({
@@ -102,18 +100,16 @@ Ext.setup({
 
         });
 
-
+        App.routeList = new Ext.List({
+            cls: 'timeline',
+            scroll: 'vertical',
+            flex: 3,
+            store: App.routeStore,
+            itemTpl: Ext.XTemplate.from('route-template')
+        });
         App.routes = new Ext.Panel({
              title: 'routes',
-             items: [
-                new Ext.List({
-                    cls: 'timeline',
-                    scroll: 'vertical',
-                    flex: 3,
-                    store: App.routeStore,
-                    itemTpl: Ext.XTemplate.from('route-template')
-                })
-             ]
+             items: [App.routeList]
         });
 
 

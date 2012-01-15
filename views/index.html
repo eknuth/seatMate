@@ -24,7 +24,7 @@
 <body>
 <textarea id="comment-template" class="x-hidden-display">
 	<div class="tweet">
-		<div class="avatar"><img src="{profile_image_url}" /></div>
+		<div class="avatar"></div>
 		<div class="tweet-content">
 			<h2>{comment}</h2>
 			<p>{date}</p>
@@ -40,7 +40,5 @@
 </html>
 <script type="text/javascript">
 var rawComments = {{html comments}};
-var rawRoutes = [{route: 9,
-                 description: 'Powell/Broadway'}];
 </script>
 <script type="text/javascript" src="index.js"></script>
