@@ -69,13 +69,15 @@ Ext.setup({
         });
 
         // load the routes
-        socket.emit('get-routes', 3, 3, function (routes) {
-            Ext.each(routes, function (route, index) {
-                App.routeStore.add(route);
+        var refreshRoutes = function () {
+                socket.emit('get-routes', 3, 3, function (routes) {
+                Ext.each(routes, function (route, index) {
+                    App.routeStore.add(route);
+                });
+                App.routeList.refresh();
             });
-            App.routeList.refresh();
-        });
-
+        };
+        refreshRoutes();
         var commentData = [];
         Ext.each(rawComments, function(rawComment, index) {
             var comment = JSON.parse(rawComment);
@@ -109,7 +111,15 @@ Ext.setup({
         });
         App.routes = new Ext.Panel({
              title: 'routes',
-             items: [App.routeList]
+             type: 'vbox',
+             items: [
+                App.routeList,
+                new Ext.Map({
+                   title: "Map",
+                   flex: 2,
+                   useCurrentLocation: true
+                })
+            ]
         });
 
 
@@ -191,7 +201,8 @@ Ext.setup({
                 iconMask: "true",
                 iconCls: "refresh",
                 ui: 'plain',
-                style: 'margin:0'
+                style: 'margin:0',
+                handler: refreshRoutes
             }
         ]);
         App.panel.getTabBar().doLayout();
