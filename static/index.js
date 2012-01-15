@@ -68,6 +68,21 @@ Ext.setup({
 
         });
 
+
+        App.routes = new Ext.Panel({
+             title: 'routes',
+             items: [
+                new Ext.List({
+                    cls: 'timeline',
+                    scroll: 'vertical',
+                    flex: 3,
+                    store: App.store,
+                    itemTpl: Ext.XTemplate.from('route-template')
+                })
+             ]
+        });
+
+
         // App.comments.update();
 
         App.form = new Ext.form.FormPanel({
@@ -125,7 +140,9 @@ Ext.setup({
             type: 'dark',
             sortable: true,
             cardSwitchAnimation: {type: 'fade', duration: 200},
-            items: [App.form,
+            items: [
+            App.routes,
+            App.form,
             {
                 title: 'chat',
                 html: 'chat',
