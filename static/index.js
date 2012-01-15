@@ -10,6 +10,19 @@ Ext.setup({
     tabletStartupScreen: 'img/tablet_startup.png',
     phoneStartupScreen: 'img/phone_startup.png',
     onReady: function() {
+
+        App.models.Route = Ext.regModel('Route', {
+            fields: [{
+                name: 'route',
+                type: 'string'
+            },
+            {
+                name: 'description',
+                type: 'string'
+            }
+            ]
+        });
+
         App.models.Comment = Ext.regModel('Comment', {
             fields: [{
                 name: 'date',
@@ -30,18 +43,39 @@ Ext.setup({
             }
         });
         
+        Ext.regController('Route', {
+            
+
+        });
+
         Ext.regController('Comment', {
             submitComment: function (param) {
-                App.store.add({
+                App.commentStore.add({
                 "date": new Date(), // .format('g:i a d/h/Y'),
                 "comment": param.data.comment,
                 "profile_image_url": "http://placekitten.com/48/48"
                 });
-                App.store.sort();
+                App.commentStore.sort();
                 App.comments.refresh();
                 socket.emit('submit-comment', {comment: param.data.comment});
            }
         });
+
+        var routeData = [];
+        Ext.each(rawRoutes, function(rawRoute, index) {
+            var route = rawRoute;
+            routeData.push({
+                "route": rawRoute.route,
+                "description": rawRoute.description
+            });
+        });
+        App.routeStore = new Ext.data.Store({
+            model: 'Route',
+            data: routeData,
+            sorters: [{ property: 'route',  direction: 'DESC' }]
+        });
+
+
 
         var commentData = [];
         Ext.each(rawComments, function(rawComment, index) {
@@ -52,7 +86,7 @@ Ext.setup({
                 "profile_image_url": "http://placekitten.com/48/48"
             });
         });
-        App.store = new Ext.data.Store({
+        App.commentStore = new Ext.data.Store({
             model: 'Comment',
             data: commentData,
             sorters: [{ property: 'date',  direction: 'DESC' }]
@@ -63,7 +97,7 @@ Ext.setup({
             cls: 'timeline',
             scroll: 'vertical',
             flex: 3,
-            store: App.store,
+            store: App.commentStore,
             itemTpl: Ext.XTemplate.from('comment-template')
 
         });
@@ -76,7 +110,7 @@ Ext.setup({
                     cls: 'timeline',
                     scroll: 'vertical',
                     flex: 3,
-                    store: App.store,
+                    store: App.routeStore,
                     itemTpl: Ext.XTemplate.from('route-template')
                 })
              ]
@@ -135,9 +169,9 @@ Ext.setup({
         });
         
     
-        new Ext.TabPanel({
+        App.panel = new Ext.TabPanel({
             fullscreen: true,
-            type: 'dark',
+            ui: 'light',
             sortable: true,
             cardSwitchAnimation: {type: 'fade', duration: 200},
             items: [
@@ -153,5 +187,17 @@ Ext.setup({
                 cls: 'card3'
             }]
         });
+
+        App.panel.getTabBar().add([
+            { xtype: 'spacer' },
+            {
+                xtype: "button",
+                iconMask: "true",
+                iconCls: "refresh",
+                ui: 'plain',
+                style: 'margin:0'
+            }
+        ]);
+        App.panel.getTabBar().doLayout();
     }
 });
