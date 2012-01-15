@@ -9,61 +9,51 @@ describe('trimet: get nearest routes from coordinate', function() {
                 expectedRoutes = [{
                     route: 9,
                     description: 'Powell/Broadway',
-                    direction: 'To Powell & 98th or Gresham TC',
                     distance: 0.00200889736828729
                 }, {
-                    route: 9,
-                    description: 'Powell/Broadway',
-                    direction: 'To Saratoga & 27th',
-                    distance: 0.00200890251737265
-                }, {
                     route: 14,
                     description: 'Hawthorne',
-                    direction: 'To Foster & 94th',
                     distance: 0.00229043846550735
                 }, {
-                    route: 14,
-                    description: 'Hawthorne',
-                    direction: 'To Portland City Center',
-                    distance: 0.00229044244641688
-                }, {
                     route: 71,
                     description: '60th Ave/122nd Ave',
-                    direction: 'To Foster & 94th',
                     distance: 0.00460586966268184
                 }, {
-                    route: 71,
-                    description: '60th Ave/122nd Ave',
-                    direction: 'To Clackamas Town Center',
-                    distance: 0.00460588437600594
-                }, {
                     route: 4,
                     description: 'Division/Fessenden',
-                    direction: 'To Gresham TC',
-                    distance: 0.00575370636240205
-                }, {
-                    route: 4,
-                    description: 'Division/Fessenden',
-                    direction: 'To St Johns',
                     distance: 0.00575370636240205
                 }, {
                     route: 75,
                     description: 'Cesar E Chavez/Lombard',
-                    direction: 'To St. Johns',
                     distance: 0.00898150226029743
                 }, {
-                    route: 75,
-                    description: 'Cesar E Chavez/Lombard',
-                    direction: 'To Milwaukie',
-                    distance: 0.00898150543661629
+                    route: 66,
+                    description: 'Marquam Hill/Hollywood',
+                    distance: 0.00898150861891694
+                }, {
+                    route: 17,
+                    description: 'Holgate/NW 21st',
+                    distance: 0.00924074516961275
+                }, {
+                    route: 10,
+                    description: 'Harold St',
+                    distance: 0.0148568363291083
+                }, {
+                    route: 15,
+                    description: 'Belmont/NW 23rd',
+                    distance: 0.0170180326549672
+                }, {
+                    route: 19,
+                    description: 'Woodstock/Glisan',
+                    distance: 0.020370095002805
                 }];
 
-            trimet.getRouteByPoint(lat, lon, function(err, data) {
-                should.not.exist(err);
-                should.exist(data);
-                data.should.eql(expectedRoutes);
-                done();
-            });
+                trimet.getRouteByPoint(lat, lon, function(err, data) {
+                    should.not.exist(err);
+                    should.exist(data);
+                    data.should.eql(expectedRoutes);
+                    done();
+                });
+                });
         });
     });
-});
