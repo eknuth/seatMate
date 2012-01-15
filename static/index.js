@@ -15,12 +15,10 @@ Ext.setup({
             fields: [{
                 name: 'route',
                 type: 'string'
-            },
-            {
+            }, {
                 name: 'description',
                 type: 'string'
-            }
-            ]
+            }]
         });
 
         App.models.Comment = Ext.regModel('Comment', {
@@ -28,68 +26,75 @@ Ext.setup({
                 name: 'date',
                 type: 'date',
                 format: 'g:i a d/h/Y'
-            },
-            {
+            }, {
                 name: 'text',
                 type: 'string'
-            },
-            {
+            }, {
                 name: 'profile_image_url',
                 type: 'string'
             }],
             proxy: {
-               type: 'localstorage',
-                id  : 'comment'
+                type: 'localstorage',
+                id: 'comment'
             }
         });
-        
+
         Ext.regController('Route', {
-            
+
 
         });
 
         Ext.regController('Comment', {
-            submitComment: function (param) {
+            submitComment: function(param) {
                 App.commentStore.add({
-                "date": new Date(), // .format('g:i a d/h/Y'),
-                "comment": param.data.comment,
-                "profile_image_url": "http://placekitten.com/48/48"
+                    "date": new Date(),
+                    // .format('g:i a d/h/Y'),
+                    "comment": param.data.comment,
+                    "profile_image_url": "http://placekitten.com/48/48"
                 });
                 App.commentStore.sort();
                 App.comments.refresh();
-                socket.emit('submit-comment', {comment: param.data.comment});
-           }
+                socket.emit('submit-comment', {
+                    comment: param.data.comment
+                });
+            }
         });
 
 
         App.routeStore = new Ext.data.Store({
             model: 'Route',
             data: [],
-            sorters: [{ property: 'route',  direction: 'DESC' }]
+            sorters: [{
+                property: 'route',
+                direction: 'DESC'
+            }]
         });
 
         // load the routes
-        var refreshRoutes = function () {
-                socket.emit('get-routes', 3, 3, function (routes) {
-                Ext.each(routes, function (route, index) {
-                    App.routeStore.add(route);
+        var refreshRoutes = function(lat, lon) {
+                socket.emit('get-routes', lat, lon, function(routes) {
+                    Ext.each(routes, function(route, index) {
+                        App.routeStore.add(route);
+                    });
+                    App.routeList.refresh();
                 });
-                App.routeList.refresh();
-            });
-        };
-        refreshRoutes();
+            };
         var commentData = [];
         Ext.each(rawComments, function(rawComment, index) {
             var comment = JSON.parse(rawComment);
             commentData.push({
-                "date": new Date(comment.ts), //.format('g:i a d/h/Y'),
+                "date": new Date(comment.ts),
+                //.format('g:i a d/h/Y'),
                 "comment": comment.text
             });
         });
         App.commentStore = new Ext.data.Store({
             model: 'Comment',
             data: commentData,
-            sorters: [{ property: 'date',  direction: 'DESC' }]
+            sorters: [{
+                property: 'date',
+                direction: 'DESC'
+            }]
         });
 
         App.comments = new Ext.List({
@@ -105,26 +110,52 @@ Ext.setup({
         App.routeList = new Ext.List({
             cls: 'timeline',
             scroll: 'vertical',
-            flex: 3,
+            flex: 4,
             store: App.routeStore,
             itemTpl: Ext.XTemplate.from('route-template')
         });
         App.routes = new Ext.Panel({
-             title: 'routes',
-             type: 'vbox',
-             items: [
-                App.routeList,
-                new Ext.Map({
-                   title: "Map",
-                   flex: 2,
-                   useCurrentLocation: true
-                })
-            ]
+            title: 'routes',
+            type: 'vbox',
+            items: [
+            App.routeList],
+            dockedItems: [new Ext.Toolbar({
+                title: 'My Toolbar',
+                dock: 'bottom',
+                items: [{
+                    xtype: 'spacer'
+                }, {
+                    xtype: "button",
+                    iconMask: "true",
+                    iconCls: "refresh",
+                    ui: 'plain',
+                    style: 'margin:0',
+                    handler: function () {
+                        // alert('got button');
+                        // geo.updateLocation();
+                    }
+                }]
+            })]
         });
 
+        var geo = new Ext.util.GeoLocation({
+            autoUpdate: false,
+            listeners: {
+                locationupdate: function(geo) {
+                    refreshRoutes(geo.latitude, geo.longitude);
+                },
+                locationerror: function(geo, bTimeout, bPermissionDenied, bLocationUnavailable, message) {
+                    if (bTimeout) {
+                        alert('Timeout occurred.');
+                    } else {
+                        alert('Error occurred.');
+                    }
+                }
+            }
+        });
+        geo.updateLocation();
 
         // App.comments.update();
-
         App.form = new Ext.form.FormPanel({
             title: 'comment',
             scroll: 'vertical',
@@ -173,16 +204,18 @@ Ext.setup({
                 }]
             }]
         });
-        
-    
+
+
         App.panel = new Ext.TabPanel({
             fullscreen: true,
             ui: 'light',
             sortable: true,
-            cardSwitchAnimation: {type: 'fade', duration: 200},
+            cardSwitchAnimation: {
+                type: 'fade',
+                duration: 200
+            },
             items: [
-            App.routes,
-            App.form,
+            App.routes, App.form,
             {
                 title: 'chat',
                 html: 'chat',
@@ -191,20 +224,34 @@ Ext.setup({
                 title: 'flirt',
                 html: 'flirt',
                 cls: 'card3'
-            }]
+            },
+            new Ext.Map({
+                title: "map",
+                mapOptions: {
+                    mapTypeControl: false,
+                    navigationControl: false,
+                    streetViewControl: false,
+                    backgroundColor: 'transparent',
+                    disableDoubleClickZoom: true,
+                    zoom: 16,
+                    keyboardShortcuts: false
+                },
+                useCurrentLocation: true
+            })]
         });
 
-        App.panel.getTabBar().add([
-            { xtype: 'spacer' },
-            {
-                xtype: "button",
-                iconMask: "true",
-                iconCls: "refresh",
-                ui: 'plain',
-                style: 'margin:0',
-                handler: refreshRoutes
-            }
-        ]);
-        App.panel.getTabBar().doLayout();
+
+        
+        // App.panel.getTabBar().add([{
+        //     xtype: 'spacer'
+        // }, {
+        //     xtype: "button",
+        //     iconMask: "true",
+        //     iconCls: "refresh",
+        //     ui: 'plain',
+        //     style: 'margin:0',
+        //     handler: refreshRoutes
+        // }]);
+        // App.panel.getTabBar().doLayout();
     }
 });

@@ -53,9 +53,13 @@ app.get('/', function(req, res) {
 
 io.sockets.on('connection', function (socket) {
   socket.on('get-routes', function (lat, lon, cb) {
-    trimet.getRouteByPoint(lat, lon, function(err, data) {
-      cb(data);
-    });
+    if (typeof lat !== 'number' || typeof lat !== 'number') {
+      cb('error');
+    } else {
+      trimet.getRouteByPoint(lat, lon, function(err, data) {
+        cb(data);
+      });
+    }
   });
   socket.on('submit-comment', function (data) {
     client.lpush("bus:comment", JSON.stringify(
