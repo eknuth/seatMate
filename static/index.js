@@ -212,19 +212,19 @@ Ext.setup({
             }]
         });
 
-        App.map = new Ext.Map({
-                title: "map",
-                mapOptions: {
-                    mapTypeControl: false,
-                    navigationControl: false,
-                    streetViewControl: false,
-                    backgroundColor: 'transparent',
-                    disableDoubleClickZoom: true,
-                    zoom: 16,
-                    keyboardShortcuts: false
-                },
-                useCurrentLocation: true
-            });
+        // App.map = new Ext.Map({
+        //         title: "map",
+        //         mapOptions: {
+        //             mapTypeControl: false,
+        //             navigationControl: false,
+        //             streetViewControl: false,
+        //             backgroundColor: 'transparent',
+        //             disableDoubleClickZoom: true,
+        //             zoom: 16,
+        //             keyboardShortcuts: false
+        //         },
+        //         useCurrentLocation: true
+        //     });
 
         App.panel = new Ext.TabPanel({
             fullscreen: true,
@@ -244,8 +244,8 @@ Ext.setup({
                 title: 'flirt',
                 html: 'flirt',
                 cls: 'card3'
-            },
-            App.map]
+            }//,
+            //App.map]
         });
 
 

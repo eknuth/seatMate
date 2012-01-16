@@ -72,7 +72,6 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('submit-comment', function (data) {
-    
     socket.get('route-id', function (err, route_id) {
       console.log('published on ' + route_id);
       console.dir(data);
@@ -80,8 +79,6 @@ io.sockets.on('connection', function (socket) {
         {'ts': new Date().getTime(), 'text': data.comment}));
       speaker.publish(route_id, JSON.stringify({'ts': new Date().getTime(), 'text': data.comment}));
     });
-
-    
   });
 
   socket.on('join-channel', function (route_id) {
