@@ -44,17 +44,18 @@ Ext.setup({
 
         });
 
-        Ext.regController('Comment', {
-            submitComment: function(param) {
-                App.commentStore.add({
+        socket.on('new-route-message', function (data) {
+            App.commentStore.add({
                     "date": new Date(),
                     // .format('g:i a d/h/Y'),
-                    "comment": param.data.comment,
-                    "profile_image_url": "http://placekitten.com/48/48"
+                    "comment": data.text
                 });
-                App.commentStore.sort();
-                App.comments.refresh();
-                socket.emit('submit-comment', {
+            App.commentStore.sort();
+            App.comments.refresh();
+        });
+        Ext.regController('Comment', {
+            submitComment: function(param) {
+                    socket.emit('submit-comment', {
                     comment: param.data.comment
                 });
             }
@@ -112,7 +113,13 @@ Ext.setup({
             scroll: 'vertical',
             flex: 4,
             store: App.routeStore,
-            itemTpl: Ext.XTemplate.from('route-template')
+            itemTpl: Ext.XTemplate.from('route-template'),
+            onItemDisclosure: function (record) {
+                var route_id = record.data.route + ":" + record.data.description;
+                socket.emit('join-channel', route_id);
+                App.panel.setActiveItem(App.form);
+                
+            }
         });
         App.routes = new Ext.Panel({
             title: 'routes',
@@ -120,7 +127,7 @@ Ext.setup({
             items: [
             App.routeList],
             dockedItems: [new Ext.Toolbar({
-                title: 'My Toolbar',
+                title: '7:25 AM @ SE 50th & Division',
                 dock: 'bottom',
                 items: [{
                     xtype: 'spacer'
@@ -205,6 +212,19 @@ Ext.setup({
             }]
         });
 
+        App.map = new Ext.Map({
+                title: "map",
+                mapOptions: {
+                    mapTypeControl: false,
+                    navigationControl: false,
+                    streetViewControl: false,
+                    backgroundColor: 'transparent',
+                    disableDoubleClickZoom: true,
+                    zoom: 16,
+                    keyboardShortcuts: false
+                },
+                useCurrentLocation: true
+            });
 
         App.panel = new Ext.TabPanel({
             fullscreen: true,
@@ -225,19 +245,7 @@ Ext.setup({
                 html: 'flirt',
                 cls: 'card3'
             },
-            new Ext.Map({
-                title: "map",
-                mapOptions: {
-                    mapTypeControl: false,
-                    navigationControl: false,
-                    streetViewControl: false,
-                    backgroundColor: 'transparent',
-                    disableDoubleClickZoom: true,
-                    zoom: 16,
-                    keyboardShortcuts: false
-                },
-                useCurrentLocation: true
-            })]
+            App.map]
         });
 
 

@@ -54,6 +54,6 @@ describe('trimet: get nearest routes from coordinate', function() {
                     data.should.eql(expectedRoutes);
                     done();
                 });
-                });
+            });
         });
     });

@@ -8,7 +8,6 @@ var express = require('express'),
 
 
 
-
 app.configure(function(){
     app.use(express.methodOverride());
     app.use(express.bodyParser());
@@ -28,6 +27,8 @@ app.configure('development', function(){
     app.use(express.logger());
     app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
     client = redis.createClient();
+    speaker = redis.createClient();
+
 });
 
 app.configure('production', function(){
@@ -36,7 +37,10 @@ app.configure('production', function(){
   app.use(express.errorHandler());
   app.use(express.logger());
   client = redis.createClient(process.env.redis_port, process.env.redis_host);
+  speaker = redis.createClient(process.env.redis_port, process.env.redis_host);
   client.auth(process.env.redis_password, redis.print);
+  speaker.auth(process.env.redis_password, redis.print);
+  
 
 });
 
@@ -52,19 +56,52 @@ app.get('/', function(req, res) {
 
 
 io.sockets.on('connection', function (socket) {
+  // create a listener for this connection
+  // this is a redis client that only subscribes to channels
+  var listener = redis.createClient(process.env.redis_port, process.env.redis_host);
+  listener.auth(process.env.redis_password, redis.print);
+  
   socket.on('get-routes', function (lat, lon, cb) {
     if (typeof lat !== 'number' || typeof lat !== 'number') {
-      cb('error');
+      cb('error: get-routes#invalid arguments');
     } else {
       trimet.getRouteByPoint(lat, lon, function(err, data) {
         cb(data);
       });
     }
   });
+
   socket.on('submit-comment', function (data) {
-    client.lpush("bus:comment", JSON.stringify(
-                {'ts': new Date().getTime(), 'text': data.comment}));
+    
+    socket.get('route-id', function (err, route_id) {
+      console.log('published on ' + route_id);
+      console.dir(data);
+      client.lpush(route_id, JSON.stringify(
+        {'ts': new Date().getTime(), 'text': data.comment}));
+      speaker.publish(route_id, JSON.stringify({'ts': new Date().getTime(), 'text': data.comment}));
+    });
+
+    
   });
+
+  socket.on('join-channel', function (route_id) {
+    console.log('joining channel');
+    listener.subscribe(route_id);
+    socket.set('route-id', route_id, function () {
+      console.log('joined ' + route_id);
+    });
+    // here are the events on the listener
+    listener.on("message", function (channel, data) {
+      console.log('listener!');
+      console.log('got a route comment on ' + route_id);
+      console.dir(data);
+      io.sockets.emit('new-route-message', JSON.parse(data));
+    });
+  });
+
+  
+
+
 });
 
 
