@@ -91,14 +91,14 @@ io.sockets.on('connection', function (socket) {
       console.log('joined ' + route_id);
     });
     // here are the events on the listener
-    listener.on("message", function (channel, data) {
-      console.log('listener!');
-      console.log('got a route comment on ' + route_id);
-      console.dir(data);
-      io.sockets.emit('new-route-message', JSON.parse(data));
-    });
+    
   });
-
+  listener.on("message", function (channel, data) {
+    console.log('listener!');
+    console.log('got a route comment on ' + channel);
+    console.dir(data);
+    io.sockets.emit('new-route-message', JSON.parse(data));
+  });
   
 
 
