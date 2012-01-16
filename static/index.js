@@ -244,7 +244,7 @@ Ext.setup({
                 title: 'flirt',
                 html: 'flirt',
                 cls: 'card3'
-            }//,
+            }]//,
             //App.map]
         });
 
