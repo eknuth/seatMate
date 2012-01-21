@@ -1,4 +1,7 @@
 var socket = io.connect(window.location.origin);
+var cloudmadeUrl = 'http://{s}.tile.cloudmade.com/8ee2a50541944fb9bcedded5165f09d9/997/256/{z}/{x}/{y}.png',
+            cloudmadeAttribution = 'and cloudmade',
+            cloudmade = new L.TileLayer(cloudmadeUrl, {maxZoom: 18, attribution: cloudmadeAttribution});
 
 var App = new Ext.Application({
     name: "seatMate"
@@ -9,6 +12,18 @@ Ext.setup({
     glossOnIcon: false,
     tabletStartupScreen: 'img/tablet_startup.png',
     phoneStartupScreen: 'img/phone_startup.png',
+    // afterRender: function () {
+    //     // initialize the map on the "map" div
+    //     App.map = new L.Map('map');
+    //     App.geo.updateLocation();
+    //     // set the map view to a given center and zoom and add the CloudMade layer
+    //     //App.map.setView(new L.LatLng(45.515, -122.68), 13).addLayer(cloudmade);
+
+    //     // create a marker in the given location and add it to the map
+    //     //var marker = new L.Marker(new L.LatLng(45.55, -122.79));
+    //     //map.addLayer(marker);
+                    
+    // },
     onReady: function() {
 
         App.models.Route = Ext.regModel('Route', {
@@ -111,7 +126,7 @@ Ext.setup({
         App.routeList = new Ext.List({
             cls: 'timeline',
             scroll: 'vertical',
-            flex: 4,
+            flex: 1,
             store: App.routeStore,
             itemTpl: Ext.XTemplate.from('route-template'),
             onItemDisclosure: function (record) {
@@ -124,8 +139,19 @@ Ext.setup({
         App.routes = new Ext.Panel({
             title: 'routes',
             type: 'vbox',
+            layout: {
+                type: "vbox",
+                align: "stretch"
+            },
             items: [
-            App.routeList],
+                App.routeList,
+                {
+                    xtype: 'panel',
+                    title: 'map',
+                    flex: 1,
+                    html: '<div id="map"></div>'
+                }
+            ],
             dockedItems: [new Ext.Toolbar({
                 title: '7:25 AM @ SE 50th & Division',
                 dock: 'bottom',
@@ -145,11 +171,18 @@ Ext.setup({
             })]
         });
 
-        var geo = new Ext.util.GeoLocation({
+        App.geo = new Ext.util.GeoLocation({
             autoUpdate: false,
             listeners: {
                 locationupdate: function(geo) {
                     refreshRoutes(geo.latitude, geo.longitude);
+                    // initialize the map on the "map" div
+                    if (! App.map) {
+                        App.map = new L.Map('map');
+                    }
+                    
+                    // set the map view to a given center and zoom and add the CloudMade layer
+                    App.map.setView(new L.LatLng(geo.latitude, geo.longitude), 13).addLayer(cloudmade);
                 },
                 locationerror: function(geo, bTimeout, bPermissionDenied, bLocationUnavailable, message) {
                     if (bTimeout) {
@@ -160,7 +193,8 @@ Ext.setup({
                 }
             }
         });
-        geo.updateLocation();
+        
+        App.geo.updateLocation();
 
         // App.comments.update();
         App.form = new Ext.form.FormPanel({
@@ -212,20 +246,6 @@ Ext.setup({
             }]
         });
 
-        // App.map = new Ext.Map({
-        //         title: "map",
-        //         mapOptions: {
-        //             mapTypeControl: false,
-        //             navigationControl: false,
-        //             streetViewControl: false,
-        //             backgroundColor: 'transparent',
-        //             disableDoubleClickZoom: true,
-        //             zoom: 16,
-        //             keyboardShortcuts: false
-        //         },
-        //         useCurrentLocation: true
-        //     });
-
         App.panel = new Ext.TabPanel({
             fullscreen: true,
             ui: 'light',
@@ -234,6 +254,7 @@ Ext.setup({
                 type: 'fade',
                 duration: 200
             },
+
             items: [
             App.routes, App.form,
             {
@@ -244,8 +265,7 @@ Ext.setup({
                 title: 'flirt',
                 html: 'flirt',
                 cls: 'card3'
-            }]//,
-            //App.map]
+            }]
         });
 
 
