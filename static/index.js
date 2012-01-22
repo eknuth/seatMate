@@ -3,6 +3,7 @@ var cloudmadeUrl = 'http://{s}.tile.cloudmade.com/8ee2a50541944fb9bcedded5165f09
             cloudmadeAttribution = 'and cloudmade',
             cloudmade = new L.TileLayer(cloudmadeUrl, {maxZoom: 18, attribution: cloudmadeAttribution});
 
+
 var App = new Ext.Application({
     name: "seatMate"
 });
@@ -12,18 +13,6 @@ Ext.setup({
     glossOnIcon: false,
     tabletStartupScreen: 'img/tablet_startup.png',
     phoneStartupScreen: 'img/phone_startup.png',
-    // afterRender: function () {
-    //     // initialize the map on the "map" div
-    //     App.map = new L.Map('map');
-    //     App.geo.updateLocation();
-    //     // set the map view to a given center and zoom and add the CloudMade layer
-    //     //App.map.setView(new L.LatLng(45.515, -122.68), 13).addLayer(cloudmade);
-
-    //     // create a marker in the given location and add it to the map
-    //     //var marker = new L.Marker(new L.LatLng(45.55, -122.79));
-    //     //map.addLayer(marker);
-                    
-    // },
     onReady: function() {
 
         App.models.Route = Ext.regModel('Route', {
@@ -170,6 +159,7 @@ Ext.setup({
                 }]
             })]
         });
+        App.geojsonLayer = new L.GeoJSON();
 
         App.geo = new Ext.util.GeoLocation({
             autoUpdate: false,
@@ -179,10 +169,12 @@ Ext.setup({
                     // initialize the map on the "map" div
                     if (! App.map) {
                         App.map = new L.Map('map');
+                        App.map.addLayer(cloudmade);
+                        App.map.addLayer(App.geojsonLayer);
                     }
                     
                     // set the map view to a given center and zoom and add the CloudMade layer
-                    App.map.setView(new L.LatLng(geo.latitude, geo.longitude), 13).addLayer(cloudmade);
+                    App.map.setView(new L.LatLng(geo.latitude, geo.longitude), 13);
                 },
                 locationerror: function(geo, bTimeout, bPermissionDenied, bLocationUnavailable, message) {
                     if (bTimeout) {
