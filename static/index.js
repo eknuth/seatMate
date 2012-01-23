@@ -112,6 +112,20 @@ Ext.setup({
 
         });
 
+        var geojsonLayer = new L.GeoJSON(null, {
+            pointToLayer: function (latlng){
+                return new L.CircleMarker(latlng, {
+                    radius: 8,
+                    fillColor: "#ff7800",
+                    color: "#000",
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                });
+            }
+        });
+
+
         App.routeList = new Ext.List({
             cls: 'timeline',
             scroll: 'vertical',
@@ -123,7 +137,17 @@ Ext.setup({
                 socket.emit('join-channel', route_id);
                 App.panel.setActiveItem(App.form);
                 
+            },
+            listeners: {
+                scope : this,
+                itemtap : function (list, item) {
+                    socket.emit('get-route', App.routeStore.data.items[item].data.id, function (route) {
+                        App.geojsonLayer.clearLayers();
+                        App.geojsonLayer.addGeoJSON(JSON.parse(route.geojson));
+                    });
+                }
             }
+
         });
         App.routes = new Ext.Panel({
             title: 'routes',

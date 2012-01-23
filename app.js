@@ -61,6 +61,17 @@ io.sockets.on('connection', function (socket) {
   var listener = redis.createClient(process.env.redis_port, process.env.redis_host);
   listener.auth(process.env.redis_password, redis.print);
   
+   
+  socket.on('get-route', function (route_id, cb) {
+    if (typeof route_id !== 'number') {
+      cb('error: get-route#invalid argument');
+    } else {
+      trimet.getRouteByID(route_id, function(err, data) {
+        cb(data);
+      });
+    }
+  });
+
   socket.on('get-routes', function (lat, lon, cb) {
     if (typeof lat !== 'number' || typeof lat !== 'number') {
       cb('error: get-routes#invalid arguments');
@@ -87,8 +98,8 @@ io.sockets.on('connection', function (socket) {
     socket.set('route-id', route_id, function () {
       console.log('joined ' + route_id);
     });
-    // here are the events on the listener
-    
+    // here are the events on the listener  
+  
   });
   listener.on("message", function (channel, data) {
     console.log('listener!');
