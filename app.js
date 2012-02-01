@@ -83,22 +83,21 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('submit-comment', function (data) {
-    socket.get('route-id', function (err, route_id) {
-      console.log('published on ' + route_id);
-      console.dir(data);
-      client.lpush(route_id, JSON.stringify(
-        {'ts': new Date().getTime(), 'text': data.comment}));
-      speaker.publish(route_id, JSON.stringify({'ts': new Date().getTime(), 'text': data.comment}));
+    socket.get('identity', function (err, identity) {
+      var comment = identity.nickname + ': ' + data.comment;
+      if (err) { console.dir(err);}
+      client.lpush(identity.route_id, JSON.stringify(
+        {'ts': new Date().getTime(), 'text': comment}));
+      speaker.publish(identity.route_id, JSON.stringify({'ts': new Date().getTime(), 'text': comment}));
     });
   });
 
-  socket.on('join-channel', function (route_id) {
+  socket.on('join-channel', function (route_id, nickname) {
+    var joinMessage = nickname + ' has joined';
     console.log('joining channel');
     listener.subscribe(route_id);
-    socket.set('route-id', route_id, function () {
-      console.log('joined ' + route_id);
-    });
-    // here are the events on the listener  
+    speaker.publish(route_id, JSON.stringify({'ts': new Date().getTime(), 'text': joinMessage}));
+    socket.set('identity', {route_id: route_id, nickname: nickname}, function () {});
   
   });
   listener.on("message", function (channel, data) {

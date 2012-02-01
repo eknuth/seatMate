@@ -125,6 +125,50 @@ Ext.setup({
             }
         });
 
+        var overlayTb = new Ext.Toolbar({
+            title: 'entering chat',
+            dock: 'top'
+        });
+        
+        App.overlay = new Ext.Panel({
+            floating: true,
+            centered: true,
+            dockedItems: overlayTb,
+            width: 260,
+            height: 260,
+            styleHtmlContent: true,
+            scroll: 'vertical',
+            cls: 'htmlcontent',
+            items: [{
+                xtype: 'fieldset',
+                title: 'identity',
+                instructions: 'your personal information and location will not be seen by other riders',
+                flex: 1,
+                defaults: {
+                    required: false,
+                    labelAlign: 'left',
+                    labelWidth: '25%'
+                },
+                items: [{
+                    xtype: 'textfield',
+                    name: 'nickname',
+                    label: 'nickname',
+                    useClearIcon: true,
+                    autoCapitalize: false
+                },{
+                    xtype: "button",
+                    iconMask: "true",
+                    text: 'submit',
+                    ui: 'confirm',
+                    handler: function() {
+                        App.nickname = App.overlay.fields.items[0].getValue();
+                        socket.emit('join-channel', App.route_id, App.nickname);
+                        App.overlay.hide();
+                        App.panel.setActiveItem(App.form);
+                    }
+                }]
+            }]
+        });
 
         App.routeList = new Ext.List({
             cls: 'timeline',
@@ -133,10 +177,11 @@ Ext.setup({
             store: App.routeStore,
             itemTpl: Ext.XTemplate.from('route-template'),
             onItemDisclosure: function (record) {
-                var route_id = record.data.route + ":" + record.data.description;
-                socket.emit('join-channel', route_id);
-                App.panel.setActiveItem(App.form);
-                
+                // var route_id = record.data.route + ":" + record.data.description;
+                // socket.emit('join-channel', route_id);
+                // App.panel.setActiveItem(App.form);
+                App.route_id = record.data.route + ":" + record.data.description;
+                App.overlay.show();
             },
             listeners: {
                 scope : this,
@@ -214,7 +259,7 @@ Ext.setup({
 
         // App.comments.update();
         App.form = new Ext.form.FormPanel({
-            title: 'comment',
+            title: 'chat',
             scroll: 'vertical',
             standardSubmit: true,
             layout: {
@@ -272,16 +317,7 @@ Ext.setup({
             },
 
             items: [
-            App.routes, App.form,
-            {
-                title: 'chat',
-                html: 'chat',
-                cls: 'card2'
-            }, {
-                title: 'flirt',
-                html: 'flirt',
-                cls: 'card3'
-            }]
+            App.routes, App.form]
         });
 
 
