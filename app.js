@@ -47,11 +47,7 @@ app.configure('production', function(){
 
 app.get('/', function(req, res) {
   console.log('getting /');
-  client.lrange("bus:comment", 0, 14, function (err, data) {
-    res.render('index.html', {'comments': JSON.stringify(data)});
-  });
-
-  
+  res.render('index.html', {});
 });
 
 
@@ -77,6 +73,7 @@ io.sockets.on('connection', function (socket) {
       cb('error: get-routes#invalid arguments');
     } else {
       trimet.getRouteByPoint(lat, lon, function(err, data) {
+        console.dir(data);
         cb(data);
       });
     }
@@ -93,17 +90,16 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('join-channel', function (route_id, nickname) {
-    var joinMessage = nickname + ' has joined';
+    var joinMessage = nickname + ' has joined the chat';
     console.log('joining channel');
     listener.subscribe(route_id);
     speaker.publish(route_id, JSON.stringify({'ts': new Date().getTime(), 'text': joinMessage}));
     socket.set('identity', {route_id: route_id, nickname: nickname}, function () {});
-  
   });
   listener.on("message", function (channel, data) {
     console.log('listener!');
     console.log('got a route comment on ' + channel);
-    console.dir(data);
+    
     io.sockets.emit('new-route-message', JSON.parse(data));
   });
   

@@ -85,14 +85,14 @@ Ext.setup({
                 });
             };
         var commentData = [];
-        Ext.each(rawComments, function(rawComment, index) {
-            var comment = JSON.parse(rawComment);
-            commentData.push({
-                "date": new Date(comment.ts),
-                //.format('g:i a d/h/Y'),
-                "comment": comment.text
-            });
-        });
+        // Ext.each(rawComments, function(rawComment, index) {
+        //     var comment = JSON.parse(rawComment);
+        //     commentData.push({
+        //         "date": new Date(comment.ts),
+        //         //.format('g:i a d/h/Y'),
+        //         "comment": comment.text
+        //     });
+        // });
         App.commentStore = new Ext.data.Store({
             model: 'Comment',
             data: commentData,
@@ -164,6 +164,7 @@ Ext.setup({
                         App.nickname = App.overlay.fields.items[0].getValue();
                         socket.emit('join-channel', App.route_id, App.nickname);
                         App.overlay.hide();
+                        App.commentStore.removeAll();
                         App.panel.setActiveItem(App.form);
                     }
                 }]
@@ -209,24 +210,7 @@ Ext.setup({
                     flex: 1,
                     html: '<div id="map"></div>'
                 }
-            ],
-            dockedItems: [new Ext.Toolbar({
-                title: '7:25 AM @ SE 50th & Division',
-                dock: 'bottom',
-                items: [{
-                    xtype: 'spacer'
-                }, {
-                    xtype: "button",
-                    iconMask: "true",
-                    iconCls: "refresh",
-                    ui: 'plain',
-                    style: 'margin:0',
-                    handler: function () {
-                        // alert('got button');
-                        // geo.updateLocation();
-                    }
-                }]
-            })]
+            ]
         });
         App.geojsonLayer = new L.GeoJSON();
 
@@ -270,8 +254,8 @@ Ext.setup({
             App.comments,
             {
                 xtype: 'fieldset',
-                title: 'leave a comment',
-                instructions: 'comment will be seen by other riders of the 14',
+                title: 'submit message',
+                instructions: 'message will be seen by other riders of the transit',
                 flex: 1,
                 defaults: {
                     required: false,
