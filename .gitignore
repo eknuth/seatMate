@@ -1,2 +1,5 @@
 node_modules
 config.json
+scripts/dev_env.sh
+scripts/deploy.sh
+/data

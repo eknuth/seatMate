@@ -1,0 +1,4 @@
+jitsu deploy
+jitsu env set redis_host 
+jitsu env set redis_port 
+jitsu env set redis_password 

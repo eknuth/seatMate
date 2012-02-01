@@ -22,3 +22,9 @@
 .tweet .avatar img {
     max-width: 48px;
 }
+
+#map {
+    border-top: 2px solid #306AA1;
+    height: 100%;
+    width: 100%;
+}

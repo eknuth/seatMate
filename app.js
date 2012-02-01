@@ -2,12 +2,10 @@ var express = require('express'),
 	app = express.createServer(),
   io = require('socket.io').listen(app),
   redis = require("redis"),
-  
-  jqtpl = require('jqtpl');
+  jqtpl = require('jqtpl'),
+  trimet = require('./lib/trimet.js');
 
 
-client = redis.createClient(process.env.redis_port, process.env.redis_host);
-client.auth(process.env.redis_password, redis.print);
 
 
 app.configure(function(){
@@ -20,12 +18,17 @@ app.configure(function(){
         layout: false
     });
     app.register(".html", jqtpl.express);
+    
+
 });
 
 app.configure('development', function(){
     app.use(express.static(__dirname + '/static'));
     app.use(express.logger());
     app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+    client = redis.createClient();
+    speaker = redis.createClient();
+
 });
 
 app.configure('production', function(){
@@ -33,25 +36,75 @@ app.configure('production', function(){
   app.use(express.static(__dirname + '/static', { maxAge: oneYear }));
   app.use(express.errorHandler());
   app.use(express.logger());
+  client = redis.createClient(process.env.redis_port, process.env.redis_host);
+  speaker = redis.createClient(process.env.redis_port, process.env.redis_host);
+  client.auth(process.env.redis_password, redis.print);
+  speaker.auth(process.env.redis_password, redis.print);
+  
 
 });
 
 
 app.get('/', function(req, res) {
   console.log('getting /');
-  client.lrange("bus:comment", 0, 14, function (err, data) {
-    res.render('index.html', {'comments': JSON.stringify(data)});
-  });
-
-  
+  res.render('index.html', {});
 });
 
 
 io.sockets.on('connection', function (socket) {
-  socket.on('submit-comment', function (data) {
-    client.lpush("bus:comment", JSON.stringify(
-                {'ts': new Date().getTime(), 'text': data.comment}));
+  // create a listener for this connection
+  // this is a redis client that only subscribes to channels
+  var listener = redis.createClient(process.env.redis_port, process.env.redis_host);
+  listener.auth(process.env.redis_password, redis.print);
+  
+   
+  socket.on('get-route', function (route_id, cb) {
+    if (typeof route_id !== 'number') {
+      cb('error: get-route#invalid argument');
+    } else {
+      trimet.getRouteByID(route_id, function(err, data) {
+        cb(data);
+      });
+    }
   });
+
+  socket.on('get-routes', function (lat, lon, cb) {
+    if (typeof lat !== 'number' || typeof lat !== 'number') {
+      cb('error: get-routes#invalid arguments');
+    } else {
+      trimet.getRouteByPoint(lat, lon, function(err, data) {
+        console.dir(data);
+        cb(data);
+      });
+    }
+  });
+
+  socket.on('submit-comment', function (data) {
+    socket.get('identity', function (err, identity) {
+      var comment = identity.nickname + ': ' + data.comment;
+      if (err) { console.dir(err);}
+      client.lpush(identity.route_id, JSON.stringify(
+        {'ts': new Date().getTime(), 'text': comment}));
+      speaker.publish(identity.route_id, JSON.stringify({'ts': new Date().getTime(), 'text': comment}));
+    });
+  });
+
+  socket.on('join-channel', function (route_id, nickname) {
+    var joinMessage = nickname + ' has joined the chat';
+    console.log('joining channel');
+    listener.subscribe(route_id);
+    speaker.publish(route_id, JSON.stringify({'ts': new Date().getTime(), 'text': joinMessage}));
+    socket.set('identity', {route_id: route_id, nickname: nickname}, function () {});
+  });
+  listener.on("message", function (channel, data) {
+    console.log('listener!');
+    console.log('got a route comment on ' + channel);
+    
+    io.sockets.emit('new-route-message', JSON.parse(data));
+  });
+  
+
+
 });
 
 
